@@ -74,6 +74,7 @@ Many thanks to Tom Christie & all the contributors who have developed [Django RE
 * David Newgas (@davidn)
 * Bozidar Benko (@bbenko)
 * @pySilver
+* Rodrigo Cabello (@mrcabellom)
 
 
 ### Django REST Framework Docs contributors:
