@@ -331,7 +331,7 @@ class BaseMethodIntrospector(object):
         return {
             'name': serializer_name,
             'type': serializer_name,
-            'paramType': 'body',
+            'in': 'body',
         }
 
     def build_path_parameters(self):
@@ -345,7 +345,7 @@ class BaseMethodIntrospector(object):
             params.append({
                 'name': param,
                 'type': 'string',
-                'paramType': 'path',
+                'in': 'path',
                 'required': True
             })
 
@@ -365,7 +365,7 @@ class BaseMethodIntrospector(object):
         for line in split_lines:
             param = line.split(' -- ')
             if len(param) == 2:
-                params.append({'paramType': 'query',
+                params.append({'in': 'query',
                                'name': param[0].strip(),
                                'description': param[1].strip(),
                                'dataType': ''})
@@ -381,7 +381,7 @@ class BaseMethodIntrospector(object):
         if (filter_class is not None and
                 issubclass(filter_class, django_filters.FilterSet)):
             for name, filter_ in filter_class.base_filters.items():
-                parameter = {'paramType': 'query',
+                parameter = {'in': 'query',
                              'name': name,
                              'description': filter_.label,
                              'dataType': ''}
@@ -421,7 +421,7 @@ class BaseMethodIntrospector(object):
                 data_format = self.PRIMITIVES.get(data_type)[0]
 
             f = {
-                'paramType': 'form',
+                'in': 'formData',
                 'name': name,
                 'description': getattr(field, 'help_text', '') or '',
                 'type': data_type,
@@ -646,12 +646,12 @@ class ViewSetMethodIntrospector(BaseMethodIntrospector):
         page_size, page_query_param, page_size_query_param = get_pagination_attribures(view)
         if self.method == 'list' and page_size:
             if page_query_param:
-                parameters.append({'paramType': 'query',
+                parameters.append({'in': 'query',
                                    'name': page_query_param,
                                    'description': None,
                                    'dataType': 'integer'})
             if page_size_query_param:
-                parameters.append({'paramType': 'query',
+                parameters.append({'in': 'query',
                                    'name': page_size_query_param,
                                    'description': None,
                                    'dataType': 'integer'})
@@ -822,7 +822,7 @@ class YAMLDocstringParser(object):
         - code: 401
           message: Not authenticated
     """
-    PARAM_TYPES = ['header', 'path', 'form', 'body', 'query']
+    PARAM_TYPES = ['header', 'path', 'formData', 'body', 'query']
     yaml_error = None
 
     def __init__(self, method_introspector):
@@ -981,9 +981,9 @@ class YAMLDocstringParser(object):
         params = []
         fields = self.object.get('parameters', [])
         for field in fields:
-            param_type = field.get('paramType', None)
+            param_type = field.get('in', None)
             if param_type not in self.PARAM_TYPES:
-                param_type = 'form'
+                param_type = 'formData'
 
             # Data Type & Format
             # See:
@@ -1017,7 +1017,7 @@ class YAMLDocstringParser(object):
                     data_format = 'string'
 
             f = {
-                'paramType': param_type,
+                'in': param_type,
                 'name': field.get('name', None),
                 'description': field.get('description', None),
                 'type': data_type,
@@ -1045,7 +1045,7 @@ class YAMLDocstringParser(object):
 
             # File support
             if f['type'] == 'file':
-                f['paramType'] = 'body'
+                f['in'] = 'body'
 
             params.append(f)
 
@@ -1065,8 +1065,8 @@ class YAMLDocstringParser(object):
         for meth_param in method_params:
             for doc_param in docstring_params:
                 if doc_param['name'] == meth_param['name']:
-                    if 'paramType' in doc_param:
-                        meth_param['paramType'] = doc_param['paramType']
+                    if 'in' in doc_param:
+                        meth_param['in'] = doc_param['in']
 
         for param_type in self.PARAM_TYPES:
             if self.should_omit_parameters(param_type):
@@ -1078,7 +1078,7 @@ class YAMLDocstringParser(object):
         # PATCH requests expects all fields except path fields to be optional
         if inspector.get_http_method() == "PATCH":
             for param in parameters:
-                if param['paramType'] != 'path':
+                if param['in'] != 'path':
                     param['required'] = False
 
         return parameters
@@ -1102,12 +1102,12 @@ class YAMLDocstringParser(object):
         strategy = self.get_parameters_strategy(param_type=param_type)
         method_params = self._filter_params(
             params=method_params,
-            key='paramType',
+            key='in',
             val=param_type
         )
         docstring_params = self._filter_params(
             params=docstring_params,
-            key='paramType',
+            key='in',
             val=param_type
         )
 

@@ -200,6 +200,7 @@ class SwaggerView(APIDocView):
                     #'debug': operation,
                     'description': operation['notes'],
                     'summary': operation['summary'],
+                    'operationId': operation['nickname'],
                     'produces': [
                         'application/json'
                     ],
@@ -246,9 +247,7 @@ class SwaggerView(APIDocView):
             #'parameters': parameters,
             'responses': {},
             'securityDefinitions': securityDefinitions,
-            'security': security,
-            'tags': tag_list,
-            'externalDocs': externalDocs
+            'security': security
         })
 
     def get_api_for_resource(self, filter_path):
